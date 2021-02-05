@@ -32,4 +32,5 @@ def format_file():
         return json.dumps(re_struct)
 
 # Average time: .39 seconds.  Data set seems to be discontinued.  Most recent filing on March 3, 2016
-print(format_file())
+# Use:
+# print(format_file())

@@ -71,21 +71,7 @@ def parse_xml():
                 "event link": entry_id
             }
         return json.dumps(feed_obj)
-    # _feed = feedparser.parse(base_url)  # Creates a feed object
-    # feed_obj = {"title": _feed.feed.title, "events": {}}
-    # entries = _feed.entries
-    #
-    # # Likely O(n)
-    # for entry in entries:
-    #     # print(json.dumps(entry))
-    #     print(entry)
-    #
-    #     feed_obj["events"][entry.id] = {"Event title": entry.title, "Last updated": entry.updated, "Link": entry.link,
-    #                                     "Event summary": entry.summary, "Event": entry.cap_event,
-    #                                     "Event urgency": entry.cap_urgency, "Event severity": entry.cap_severity,
-    #                                     "Area": entry.cap_areadesc, "County code": entry.cap_geocode}
-    # return json.dumps(feed_obj)
 
-
-# Average time is o.65 seconds
-print(parse_xml())
+# Takes 0.9 seconds to execute
+# Use:
+# print(parse_xml())
