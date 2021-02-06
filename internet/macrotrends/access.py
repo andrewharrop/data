@@ -269,5 +269,5 @@ def compare(obj1, obj2):
 # for tick in sample_tickers:
 # aapl = parse("bac")
 # amzn = parse("gs")
-
+# print(parse("amzn"))
 # compare(aapl, amzn)

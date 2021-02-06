@@ -4,6 +4,8 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 import pandas
+import time
+
 # Datasets are structured from most recent to least recent
 class Craft:
     def __init__(self, ticker):
@@ -21,7 +23,8 @@ class Craft:
 
     def price_data(self):
         return self.res["price"]["historical"]
-
+    def get_ticker(self):
+        return self.ticker
     def price_struct(self):
         # Comprehensive data grouping
         p_data = self.price_data()
@@ -68,46 +71,72 @@ class Craft:
 
 # Statistical calculations for datasets
 class IndAlgorithms:
-    def __init__(self, data):
-        self.data = data[::-1] # Swap for simplicity [oldest, ... , newest]
-
+    def __init__(self, data, ticker,name):
+        self.data = data[::-1]  # Swap for simplicity [oldest, ... , newest]
+        self.name = name
+        self.ticker = ticker
     def growth_rates(self):
         gr = []
         for index in range(1, len(self.data)):
             gr.append((self.data[index] - self.data[index - 1]) / self.data[index - 1])
         return gr
+
     def average(self):
         return sum(self.data) / len(self.data)
 
-    def linear_regression_rate(self, view = False):
+    def linear_regression_rate(self, view=False):
         xp = []
         length = len(self.data)
         for point in range(0, length):
             xp.append(point)
-        x = np.array(xp).reshape((-1,1)) # Transpose
+        x = np.array(xp).reshape((-1, 1))  # Transpose
         y = np.array(self.data)
-        lrm = LinearRegression().fit(x,y)
-        cd = (lrm.score(x,y)) # Coefficient of determination
-        it = lrm.intercept_ # Intercept
-        cf = lrm.coef_ # Slope
+        lrm = LinearRegression().fit(x, y)
+        cd = (lrm.score(x, y))  # Coefficient of determination
+        it = lrm.intercept_  # Intercept
+        cf = lrm.coef_  # Slope
         if view:
-            plt.scatter(x,y)
-            g,u = np.polyfit(np.array(xp),y,1)
-            plt.plot(np.array(xp),g*np.array(xp)+u)
+            fig = plt.figure()
+            fig.suptitle(self.name + ", "+self.ticker, fontsize=20)
+            plt.scatter(x, y)
+            g, u = np.polyfit(np.array(xp), y, 1)
+            plt.plot(np.array(xp), g * np.array(xp) + u)
             plt.show()
-        return cf
+        return cd,it,cf[0]
 
-amzn = Craft("amzn")
-statements = amzn.financial_statements()
-amzn_algs = IndAlgorithms(statements["income statement"]["Revenue"])
-print(amzn_algs.linear_regression_rate(view=True))
+    def recent_rates(self):
+        gr = []
+        for index in range(round((len(self.data) * 3) / 4), len(self.data)):
+            gr.append((self.data[index] - self.data[index - 1]) / self.data[index - 1])
+        return gr
 
-bhlb = Craft("bhlb")
-statements = bhlb.financial_statements()
-bhlb_algs = IndAlgorithms(statements["income statement"]["Revenue"])
-print(bhlb_algs.linear_regression_rate(view=True))
+    def earliest_rates(self):
+        gr = []
+        for index in range(1, round(len(self.data) / 4)+1):
+            gr.append((self.data[index] - self.data[index - 1]) / self.data[index - 1])
+        return gr
 
-aapl = Craft("aapl")
-statements = aapl.financial_statements()
-aapl_algs = IndAlgorithms(statements["income statement"]["Revenue"])
-print(aapl_algs.linear_regression_rate(view=True))
+
+
+class Regs:
+    def __init__(self, ticker):
+        self.ticker = ticker
+        self.uo = Craft(self.ticker)
+
+    def run(self, source, doc):
+        doc = " ".join([(d[0].upper() + d[1:].lower()) for d in doc.split(" ")])
+        source = source.lower()
+        statement = self.uo.financial_statements()
+        algs = IndAlgorithms(statement[source][doc],self.ticker,doc)
+        return algs.linear_regression_rate(view=True)
+
+
+
+
+ot = time.time()
+tsla = Regs("tsla")
+revenue = tsla.run("income statement", "Revenue")
+net_income = tsla.run("income statement", "Gross Profit")
+net_income = tsla.run("income statement", "Operating Income")
+net_income = tsla.run("income statement", "Net Income")
+print(time.time()-ot)
