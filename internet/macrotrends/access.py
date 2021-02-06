@@ -229,40 +229,45 @@ def compare(obj1, obj2):
         if key != "ticker":
             if key in obj2:
                 for level_1 in obj1[key]:
-                    if type(obj1[key][level_1]) is str:
-                        # Current level comparable:
-                        if "%" in obj1[key][level_1]:
+                    # try:
+                        if type(obj1[key][level_1]) is str:
+                            # Current level comparable:
+                            if "%" in obj1[key][level_1]:
+                                print("\nQuery: ",obj1["ticker"], ">", obj2["ticker"])
+                                print(key, " : " , level_1)
+                                try:
+                                    print("Query status: ",
+                                    float(obj1[key][level_1].replace("%", "")) > float(obj2[key][level_1].replace("%", "")))
+                                except KeyError:
+                                    print("Error, key mismatch")
+                            elif "B" in obj1[key][level_1] and "B" in obj2[key][level_1]:
+                                print("\nQuery: ",obj1["ticker"], ">", obj2["ticker"])
+                                print(key, " : " , level_1)
+                                print(float(obj1[key][level_1].replace("$", "").replace("B", "")) > float(
+                                    obj2[key][level_1].replace("$", "").replace("B", "")))
+                            elif "$" in obj1[key][level_1]:
+                                print("\nQuery: ",obj1["ticker"], ">", obj2["ticker"])
+                                print(key, " : " , level_1)
+                                print("Query status: ",
+                                    float(obj1[key][level_1].replace("$", "")) > float(obj2[key][level_1].replace("$", "")))
+                        elif type(obj1[key][level_1]) is float:
                             print("\nQuery: ",obj1["ticker"], ">", obj2["ticker"])
-                            print(key, " : " , level_1)
-                            print("Query status: ",
-                                float(obj1[key][level_1].replace("%", "")) > float(obj2[key][level_1].replace("%", "")))
-                        elif "B" in obj1[key][level_1] and "B" in obj2[key][level_1]:
-                            print("\nQuery: ",obj1["ticker"], ">", obj2["ticker"])
-                            print(key, " : " , level_1)
-                            print(float(obj1[key][level_1].replace("$", "").replace("B", "")) > float(
-                                obj2[key][level_1].replace("$", "").replace("B", "")))
-                        elif "$" in obj1[key][level_1]:
-                            print("\nQuery: ",obj1["ticker"], ">", obj2["ticker"])
-                            print(key, " : " , level_1)
-                            print("Query status: ",
-                                float(obj1[key][level_1].replace("$", "")) > float(obj2[key][level_1].replace("$", "")))
-                    elif type(obj1[key][level_1]) is float:
-                        print("\nQuery: ",obj1["ticker"], ">", obj2["ticker"])
-                        print(key, " : " ,level_1)
-                        print("Query status: ", obj1[key][level_1] > obj2[key][level_1])
-                    else:
-                        for level2 in obj1[key][level_1]:
+                            print(key, " : " ,level_1)
+                            print("Query status: ", obj1[key][level_1] > obj2[key][level_1])
+                        else:
+                            for level2 in obj1[key][level_1]:
 
-                            try:
-                                if type(obj1[key][level_1][level2]) != dict:
-                                    if obj1[key][level_1][level2] and obj2[key][level_1][level2]:
-                                        print("\nQuery: ", obj1["ticker"], ">", obj2["ticker"])
-                                        print(key, " : " , level_1, " : ",level2)
-                                        print("Query status: ", float(obj1[key][level_1][level2]) > float(obj2[key][level_1][level2]))
-                            except KeyError:
-                                pass
+                                try:
+                                    if type(obj1[key][level_1][level2]) != dict:
+                                        if obj1[key][level_1][level2] and obj2[key][level_1][level2]:
+                                            print("\nQuery: ", obj1["ticker"], ">", obj2["ticker"])
+                                            print(key, " : " , level_1, " : ",level2)
+                                            print("Query status: ", float(obj1[key][level_1][level2]) > float(obj2[key][level_1][level2]))
+                                except KeyError:
+                                    pass
+
 # for tick in sample_tickers:
-aapl = parse("aapl")
-amzn = parse("amzn")
+# aapl = parse("bac")
+# amzn = parse("gs")
 
-compare(aapl, amzn)
+# compare(aapl, amzn)

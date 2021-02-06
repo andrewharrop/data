@@ -199,3 +199,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 internet/twitter_secrets.txt
+internet/pump_dump_finder
