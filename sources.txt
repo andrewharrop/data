@@ -1,2 +1,3 @@
 https://alerts.weather.gov/cap/us.php?x=0
 https://data.ny.gov/api/views/ptx6-hh79/rows.json?accessType=DOWNLOAD
+https://investexcel.net/all-yahoo-finance-stock-tickers/
