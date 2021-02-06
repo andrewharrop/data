@@ -64,11 +64,12 @@ def construct_url(ticker):
 
 def parse(ticker):
     t = construct_url(ticker)
-    t_dict = {}
+    t_dict = {"ticker": ticker}
     for dir in active_directories:
 
         xr = requests.get(t + dir).content.decode()
         soup = BeautifulSoup(xr, "html.parser")
+
         if dir == "stock-price-history":
             content = (soup.find("div", {"id": "main_content"}))
             price = float(content.find("div", {
@@ -81,7 +82,7 @@ def parse(ticker):
             tb = hist_table.find("tbody")
             trs = tb.findAll("tr")
             rows = [[r.get_text() for r in x.findAll("td")] for x in trs]
-            price_dict = {"title": ttitle, "price": price, "historical": {}}
+            price_dict = {"title": ttitle, "value": price, "historical": {}}
             for item in rows:
                 year = item[0]
                 price_dict["historical"][year] = {}
@@ -93,7 +94,7 @@ def parse(ticker):
             market_cap = content.find("div", {
                 "style": "background-color:#fff; margin: 0px 0px 20px 0px; padding:20px 30px; border:1px solid #dfdfdf;"}).find(
                 "strong").get_text()
-            t_dict[dir.replace("-", " ")] = market_cap
+            t_dict[dir.replace("-", " ")] = {"value": market_cap}
         elif dir == "income-statement" or dir == "balance-sheet" or dir == "cash-flow-statement" or dir == "income-statement?freq=Q" \
                 or dir == "balance-sheet?freq=Q" or dir == "cash-flow-statement?freq=Q" or dir == "financial-ratios" or \
                 dir == "financial-ratios?freq=Q":
@@ -178,8 +179,8 @@ def parse(ticker):
                 value = data[3]
                 m_data[date] = value
             t_dict[dir.replace("-", " ")] = m_data
-        elif dir == "pe-ratio" or dir == "price-sales" or dir == "price-book" or dir == "price-fcf" or dir == "current-ratio"\
-                or dir == "quick-ratio" or dir == "debt-equity-ratio" or dir == "roe" or dir == "roa" or dir == "roi"\
+        elif dir == "pe-ratio" or dir == "price-sales" or dir == "price-book" or dir == "price-fcf" or dir == "current-ratio" \
+                or dir == "quick-ratio" or dir == "debt-equity-ratio" or dir == "roe" or dir == "roa" or dir == "roi" \
                 or dir == "return-on-tangible-equity":
             content = (soup.find("div", {"id": "main_content"}))
             current_margins = content.find("div", {
@@ -213,15 +214,55 @@ def parse(ticker):
         elif dir == "dividend-yield-history":
             content = (soup.find("div", {"id": "main_content"}))
             current_margins = content.find("div", {
-                "style":"background-color:#fff; margin: 0px 0px 20px 0px; padding:20px 30px; border:1px solid #dfdfdf;"}).findAll(
+                "style": "background-color:#fff; margin: 0px 0px 20px 0px; padding:20px 30px; border:1px solid #dfdfdf;"}).findAll(
                 "strong")
             if (current_margins):
                 payout = current_margins[0].get_text()
                 dyield = current_margins[1].get_text()
-                t_dict[dir.replace("-", " ")] = {"last payout":payout, "last yield":dyield}
+                t_dict[dir.replace("-", " ")] = {"last payout": payout, "last yield": dyield}
 
     return (t_dict)
 
 
-for tick in sample_tickers:
-    print(json.dumps(parse(tick)))
+def compare(obj1, obj2):
+    for key in obj1:
+        if key != "ticker":
+            if key in obj2:
+                for level_1 in obj1[key]:
+                    if type(obj1[key][level_1]) is str:
+                        # Current level comparable:
+                        if "%" in obj1[key][level_1]:
+                            print("Query: ",obj1["ticker"], ">", obj2["ticker"])
+                            print(key, " : " , level_1)
+                            print(
+                                float(obj1[key][level_1].replace("%", "")) > float(obj2[key][level_1].replace("%", "")))
+                        elif "B" in obj1[key][level_1] and "B" in obj2[key][level_1]:
+                            print("Query: ",obj1["ticker"], ">", obj2["ticker"])
+                            print(key, " : " , level_1)
+                            print(float(obj1[key][level_1].replace("$", "").replace("B", "")) > float(
+                                obj2[key][level_1].replace("$", "").replace("B", "")))
+                        elif "$" in obj1[key][level_1]:
+                            print("Query: ",obj1["ticker"], ">", obj2["ticker"])
+                            print(key, " : " , level_1)
+                            print(
+                                float(obj1[key][level_1].replace("$", "")) > float(obj2[key][level_1].replace("$", "")))
+                    elif type(obj1[key][level_1]) is float:
+                        print("Query: ",obj1["ticker"], ">", obj2["ticker"])
+                        print(key, " : " ,level_1)
+                        print(obj1[key][level_1] > obj2[key][level_1])
+                    else:
+                        for level2 in obj1[key][level_1]:
+
+                            try:
+                                if type(obj1[key][level_1][level2]) != dict:
+                                    if obj1[key][level_1][level2] and obj2[key][level_1][level2]:
+                                        print("Query: ", obj1["ticker"], ">", obj2["ticker"])
+                                        print(key, " : " , level_1, " : ",level2)
+                                        print(float(obj1[key][level_1][level2]) > float(obj2[key][level_1][level2]))
+                            except KeyError:
+                                pass
+# for tick in sample_tickers:
+bhlb = parse("bhlb")
+amzn = parse("amzn")
+
+compare(bhlb, amzn)
