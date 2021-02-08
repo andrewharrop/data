@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="andrewharrop" uuid="9152b166-17b9-41d1-92af-6ab9fa863541">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\andre\OneDrive\Desktop\research\internet\pump_dump_finder\andrewharrop.session</jdbc-url>
+    </data-source>
+  </component>
+</project>

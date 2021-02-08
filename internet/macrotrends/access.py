@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from time import sleep
 import ast
 import json
+import os
 
 sample_tickers = ["BHLB", "GOOG", "TSLA", "BAM"]
 
@@ -71,7 +72,7 @@ def parse(ticker):
         soup = BeautifulSoup(xr, "html.parser")
 
         if dir == "stock-price-history":
-            content = (soup.find("div", {"id": "main_content"}))
+            content = (soup.find("div", {"id": "main_content"})) # Err?
             price = float(content.find("div", {
                 "style": "background-color:#fff; margin: 0px 0px 20px 0px; padding:20px 30px; border:1px solid #dfdfdf;"}).find(
                 "strong").get_text())
@@ -179,7 +180,7 @@ def parse(ticker):
                 value = data[3]
                 m_data[date] = value
             t_dict[dir.replace("-", " ")] = m_data
-        elif dir == "pe-ratio" or dir == "price-sales" or dir == "price-book" or dir == "price-fcf" or dir == "current-ratio" \
+        elif dir == "pe-ratio" or dir == "price-sales" or dir == "price-book" or dir == "current-ratio" \
                 or dir == "quick-ratio" or dir == "debt-equity-ratio" or dir == "roe" or dir == "roa" or dir == "roi" \
                 or dir == "return-on-tangible-equity":
             content = (soup.find("div", {"id": "main_content"}))
@@ -211,6 +212,27 @@ def parse(ticker):
 
             else:
                 t_dict[dir.replace("-", " ")] = m_data
+
+        elif dir == "price-fcf":
+            content = (soup.find("div", {"id": "main_content"}))
+            current_margins = content.find("div", {
+                "style": "background-color:#fff; margin: 0px 0px 20px 0px; padding:20px 30px; border:1px solid #dfdfdf;"}).find(
+                "strong")
+            if current_margins:
+                current_margins = current_margins.get_text()
+            table_out = content.find("div", {
+                "style": "background-color:#fff; height: 500px; overflow:auto; margin: 0px 0px 30px 0px; padding:0px 30px 20px 0px; border:1px solid #dfdfdf;"})
+            table = table_out.find("table")
+            body = table.find("tbody")
+            m_data = {}
+            if current_margins:
+                m_data["current"] = current_margins
+            for row in body.findAll("tr"):
+                data = (row.get_text().strip("\n").split("\n"))
+                date = data[0]
+                value = data[2]
+                m_data[date] = value
+            t_dict[dir.replace("-", " ")] = m_data
         elif dir == "dividend-yield-history":
             content = (soup.find("div", {"id": "main_content"}))
             current_margins = content.find("div", {
@@ -271,3 +293,15 @@ def compare(obj1, obj2):
 # amzn = parse("gs")
 # print(parse("amzn"))
 # compare(aapl, amzn)
+# with open("../wikipedia/russel_1000.json", "r") as t:
+#     file = json.load(t)
+#     for ticker in file:
+#
+#         if not os.path.exists(f"saves/{ticker}.json"):
+#                 try:
+#                     data = parse(file[ticker])
+#                     if data:
+#                         with open(f"saves/{ticker}.json", "w") as f:
+#                             print(ticker)
+#                             json.dump(data, f)
+#                 except: pass
