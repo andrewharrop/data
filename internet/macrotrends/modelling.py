@@ -7,9 +7,13 @@ import matplotlib.pyplot as plt
 import pandas
 import time
 import datetime
-
-
+import openpyxl
+import csv
+import json
+import pandas as pd
 # Datasets are structured from most recent to least recent
+
+
 class Craft:
     def __init__(self, ticker):
         self.res = parse(ticker)
@@ -219,33 +223,66 @@ class IndAlgorithms:
 
 
 class TargetCompute:
-    def __init__(self, ticker):
-        self.data = parse(ticker)
-
+    def __init__(self, ticker = "", isdata = False, data = None):
+        if not isdata:
+            self.data = parse(ticker)
+        else:
+            self.data = data
     def compute_variables(self):
-        ps = float(next(iter(self.data["price sales"].values())))
-        pb = float(next(iter(self.data["price book"].values())))
-        pfcf = float(next(iter(self.data["price fcf"].values())))[1:]
-        pe = float(next(iter(self.data["pe ratio"].values())))
-        npm = float(next(iter(self.data["net profit margin"].values()))[:-1])
-        cr = float(next(iter(self.data["current ratio"].values())))
-
+        try:
+            ps = float(next(iter(self.data["price sales"].values())))
+        except:
+            ps=0
+        try:
+            pb = float(next(iter(self.data["price book"].values())))
+        except:
+            pb = 0
+        try:
+            pfcf = float(next(iter(self.data["price fcf"].values())))[1:]
+        except:
+            pfcf = 0
+        try:
+            pe = float(next(iter(self.data["pe ratio"].values())))
+        except:
+            pe = 0
+        try:
+            npm = float(next(iter(self.data["net profit margin"].values()))[:-1])
+        except:
+            npm = 0
+        try:
+            cr = float(next(iter(self.data["current ratio"].values())))
+        except:
+            cr = 0
         bv = 1
         spe = 15
         pbw = 2.5
         fcfw = 12
         npmw = 20
 
-        bv = bv / (ps)
+        try:
+            bv = bv / (ps)
+        except ZeroDivisionError:
+            bv = bv * 0.1
         if pe > 0:
-            bv = bv * (spe / (pe))
+            try:
+                bv = bv * (spe / (pe))
+            except ZeroDivisionError:
+                bv = bv * 0.1
         else:
             bv = bv * 0.1
-        bv = bv * (pbw / (pb))
-
-        bv = bv * (fcfw / (pfcf))
+        try:
+            bv = bv * (pbw / (pb))
+        except ZeroDivisionError:
+            bv = bv * 0.1
+        try:
+            bv = bv * (fcfw / (pfcf))
+        except ZeroDivisionError:
+            bv = bv * 0.1
         if npm > 0:
-            bv = bv * ((npm) / npmw)
+            try:
+                bv = bv * ((npm) / npmw)
+            except ZeroDivisionError:
+                bv = bv * 0.1
         else:
             bv = bv * 0.1
         return bv * float(self.data["price"]["value"])
@@ -254,33 +291,96 @@ class TargetCompute:
         return 0.1
 
     def compute_fcf(self, p_length=10):
-        pfcf = (self.data["price fcf"])
-        l_rates = []
-        for yr in pfcf:
+        try:
+            pfcf = (self.data["price fcf"])
+            l_rates = []
+            for yr in pfcf:
+                try:
+                    l_rates.append(float(pfcf[yr][1:]))
+                except ValueError:
+                    pass
             try:
-                l_rates.append(float(pfcf[yr][1:]))
+                average = sum(l_rates[round(len(l_rates) * 3 / 4):]) / (len(l_rates) * 1 / 4) * 4
+            except ZeroDivisionError:
+                average = 2
+            x = len(l_rates) - 1
+            x_ = []
+            while x > -1:
+                x_.append(x)
+                x -= 1
+            x_ = x_[::-1]
+            # print(len(l_rates), x_)
+            X, Y = np.array(x_).reshape(-1, 1), np.array(l_rates).reshape(-1, 1)
+
+            alg = LinearRegression().fit(X, Y)
+            yoy_rate = (alg.coef_[0][0] * 4)
+            y = 1
+            pd_apt = []
+            while y < p_length:
+                pd_apt.append(average / ((1 + self.get_wacc()) ** y))
+                y += 1
+            return round(sum(pd_apt))  # 10 years of holding
+        except ValueError:
+            return 0
+    def egr(self):
+        earnings = self.data["net-income"]
+        qrt = list(earnings.keys())[1]
+        l_rates = []
+        for year in earnings[qrt]:
+            try:
+                l_rates.append(float(earnings[qrt][year][1:]))
             except ValueError:
                 pass
-        average = sum(l_rates[round(len(l_rates)*3/4):]) / (len(l_rates)*1/4) * 4
-
         x = len(l_rates) - 1
         x_ = []
-        while x > -1:
-            x_.append(x)
-            x -= 1
-        x_ = x_[::-1]
-        # print(len(l_rates), x_)
-        X, Y = np.array(x_).reshape(-1, 1), np.array(l_rates).reshape(-1, 1)
-        alg = LinearRegression().fit(X, Y)
-        yoy_rate = (alg.coef_[0][0] * 4)
+        for item in range(0, x):
+            try:
+                x_.append((l_rates[item + 1] - l_rates[item]) / l_rates[item])
+            except ZeroDivisionError:
+                pass
+        # while x > -1:
+        #     x_.append(x)
+        #     x -= 1
+        # x_ = x_[::-1]
+        # # X, Y = np.array(x_).reshape(-1, 1), np.array(l_rates).reshape(-1, 1)
+        # # # alg = LinearRegression().fit(X, Y)
+        # # # yoy_rate = float(alg.coef_[0][0] * 4)
+        #
+        # return ((X*Y).mean(axis=1) - X.mean()*Y.mean(axis=1)) / ((X**2).mean() - (X.mean())**2)
+        return round((sum(x_) / len(x_)) * 100)
+        # print(pi)
 
-        y = 1
-        pd_apt = []
-        while y < p_length:
+    def avg_item(self, item):
+        earnings = self.data[item]
+        mm = []
+        for g in earnings:
+            try:
+                mm.append(float(earnings[g]))
+            except (ValueError, TypeError):
+                pass
+        try:
+            return round(sum(mm) / len(mm))
+        except OverflowError:
+            return 0
+    def avg_cash(self, item):
+        earnings = self.data[item]
+        qrt = list(earnings.keys())[1]
+        mm = []
+        for g in earnings[qrt]:
+            try:
 
-            pd_apt.append(average / ((1 + self.get_wacc()) ** y))
-            y += 1
-        return sum(pd_apt) # 10 years of holding
+                mm.append(float(earnings[qrt][g][1:]))
+            except ValueError:
+                pass
+        return round(sum(mm) / len(mm))
+
+    def get_item(self, item):
+        earnings = self.data[item]
+        qrt = list(earnings.keys())[0]
+        return float(earnings[qrt])
+
+    def price(self):
+        return float(self.data["price"]["value"])
 
 
 class Regs:
@@ -312,7 +412,6 @@ class Regs:
 
 def get(state, sheet, alt):
     sheet = " ".join([(sheetz[0].upper() + sheetz[1:].lower()) for sheetz in sheet.split(" ")])
-    print(sheet)
     if sheet in ['Revenue', 'Cost Of Goods Sold', 'Gross Profit', 'Research And Development Expenses', 'SG&A Expenses',
                  'Other Operating Income Or Expenses', 'Operating Expenses', 'Operating Income',
                  'Total Non-Operating Income/Expense', 'Pre-Tax Income', 'Income Taxes', 'Income After Taxes',
@@ -392,7 +491,40 @@ def run(ticker, alt=1):
 
 ot = time.time()
 
-ticker = "bb"
-# run(ticker, 1)
-print(TargetCompute(ticker).compute_fcf())
+# ticker = "tsla"
+# # run(ticker, 1)
+# gg =
+# print(gg.compute_fcf())
+# print(gg.compute_variables())
+#
+# print(gg.egr())
+# print(gg.avg_cash("net-income") * 1000000)
+# print(gg.avg_item("pe ratio"))
+# print(gg.avg_item("price sales"))
+# print(gg.get_item("pe ratio"))
+# print(gg.get_item("price sales"))
+# print(gg.get_item("current ratio"))
+# print()
+with open("../wikipedia/russel_1000.json", "r") as r1000:
+    mr = [["Ticker", "Name", "Price", "Avg PE", "Avg PS", "PS", "PE", "Current Ratio", "Earnings Growth","FCF indicator", "Price/FCF indicator", "Variable indicator", "Price/Variable indicator" ]]
+    f = json.loads(r1000.read())
+    for v in f:
+        try:
+            with open("saves/"+v + ".json", "r") as rg:
+                instance = TargetCompute("", True, json.loads(rg.read()))
+                mr.append([f[v], v, instance.price(), instance.avg_item("pe ratio"),
+                   instance.avg_item("price sales"), instance.get_item("price sales"),
+                   instance.get_item("pe ratio"), instance.get_item("current ratio"),
+                   instance.egr(), instance.compute_fcf(), instance.price()/instance.compute_fcf(),
+                  instance.compute_variables(), instance.price()/instance.compute_variables()
+                   ])
+
+        except (FileNotFoundError, ZeroDivisionError):
+            pass
+    frame = pd.DataFrame(mr)
+    frame.to_excel(excel_writer="result.xlsx")
 print("EX time:", time.time() - ot, " seconds")
+
+
+def spreadsheet_maker():
+    pass

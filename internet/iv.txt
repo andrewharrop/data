@@ -1,0 +1,48 @@
+Toto:
+    Research common valuation techniques.
+    Automate the collecion and analysis of data needed for indications...
+
+    Value from the DDM model
+    Value from the DCF model
+
+    Assume interest rate = 2.4 %
+    Assume we are looking for a 17.5% gain per year
+    DCM:
+        Gordon growth model
+            Adjust to reasonably cap growth
+            Should only be used for stable businesses
+            The calculation is:
+                value = dividend payment 1 year from now / (cost of equity capital - estimated growth rate)
+
+    Yahoo finance:
+        context:
+            stores
+                QuoteSummaryStore
+                FinanceConfigStore
+                StreamStore
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
