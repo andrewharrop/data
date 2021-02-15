@@ -293,15 +293,15 @@ def compare(obj1, obj2):
 # amzn = parse("gs")
 # print(parse("amzn"))
 # compare(aapl, amzn)
-# with open("../wikipedia/russel_1000.json", "r") as t:
-#     file = json.load(t)
-#     for ticker in file:
-#
-#         if not os.path.exists(f"saves/{ticker}.json"):
-#                 try:
-#                     data = parse(file[ticker])
-#                     if data:
-#                         with open(f"saves/{ticker}.json", "w") as f:
-#                             print(ticker)
-#                             json.dump(data, f)
-#                 except: pass
+with open("../wikipedia/constituents_json.json", "r") as t:
+    file = json.load(t)
+    for index in file:
+        ticker = index["Symbol"]
+        if not os.path.exists(f"saves/{ticker}.json"):
+                try:
+                    data = parse(ticker)
+                    if data:
+                        with open(f"saves/{ticker}.json", "w") as f:
+                            print(ticker)
+                            json.dump(data, f)
+                except: pass

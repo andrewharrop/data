@@ -489,7 +489,8 @@ def run(ticker, alt=1):
         print(get(state, item, alt))
 
 
-ot = time.time()
+
+# ot = time.time()
 
 # ticker = "tsla"
 # # run(ticker, 1)
@@ -505,26 +506,35 @@ ot = time.time()
 # print(gg.get_item("price sales"))
 # print(gg.get_item("current ratio"))
 # print()
-with open("../wikipedia/russel_1000.json", "r") as r1000:
-    mr = [["Ticker", "Name", "Price", "Avg PE", "Avg PS", "PS", "PE", "Current Ratio", "Earnings Growth","FCF indicator", "Price/FCF indicator", "Variable indicator", "Price/Variable indicator" ]]
-    f = json.loads(r1000.read())
-    for v in f:
-        try:
-            with open("saves/"+v + ".json", "r") as rg:
-                instance = TargetCompute("", True, json.loads(rg.read()))
-                mr.append([f[v], v, instance.price(), instance.avg_item("pe ratio"),
-                   instance.avg_item("price sales"), instance.get_item("price sales"),
-                   instance.get_item("pe ratio"), instance.get_item("current ratio"),
-                   instance.egr(), instance.compute_fcf(), instance.price()/instance.compute_fcf(),
-                  instance.compute_variables(), instance.price()/instance.compute_variables()
-                   ])
+# with open("../wikipedia/russel_1000.json", "r") as r1000:
+#     mr = [["Ticker", "Name", "Price", "Avg PE", "Avg PS", "PS", "PE", "Current Ratio", "Earnings Growth","FCF indicator", "Price/FCF indicator", "Variable indicator", "Price/Variable indicator" ]]
+#     f = json.loads(r1000.read())
+#     for v in f:
+#         try:
+#             with open("saves/"+v + ".json", "r") as rg:
+#                 instance = TargetCompute("", True, json.loads(rg.read()))
+#                 mr.append([f[v], v, instance.price(), instance.avg_item("pe ratio"),
+#                    instance.avg_item("price sales"), instance.get_item("price sales"),
+#                    instance.get_item("pe ratio"), instance.get_item("current ratio"),
+#                    instance.egr(), instance.compute_fcf(), instance.price()/instance.compute_fcf(),
+#                   instance.compute_variables(), instance.price()/instance.compute_variables()
+#                    ])
+#
+#         except (FileNotFoundError, ZeroDivisionError):
+#             pass
+#     frame = pd.DataFrame(mr)
+#     frame.to_excel(excel_writer="result.xlsx")
+# print("EX time:", time.time() - ot, " seconds")
 
-        except (FileNotFoundError, ZeroDivisionError):
-            pass
-    frame = pd.DataFrame(mr)
-    frame.to_excel(excel_writer="result.xlsx")
-print("EX time:", time.time() - ot, " seconds")
+#
 
-
-def spreadsheet_maker():
-    pass
+# def spreadsheet_maker():
+#     pass
+# print("Here")
+while True:
+    ticker = input("Enter ticker: ")
+    # run(ticker)
+    item = TargetCompute(ticker)
+    print("Price: ",item.price())
+    print("Intrinsic value: ",item.compute_fcf())
+    print("Variable: ",item.compute_variables())

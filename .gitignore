@@ -200,3 +200,8 @@ dmypy.json
 .pyre/
 internet/twitter_secrets.txt
 internet/pump_dump_finder
+binance/
+internet/outcome_model
+internet/macrotrends/modelling.py
+internet/yahoo_finance/yahoo_finance.py
+internet/yahoo_finance/dcf_model.py
