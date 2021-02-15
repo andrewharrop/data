@@ -205,3 +205,6 @@ internet/outcome_model
 internet/macrotrends/modelling.py
 internet/yahoo_finance/yahoo_finance.py
 internet/yahoo_finance/dcf_model.py
+internet/twitter_secrets.txt
+internet/outcome_model/compute.py
+Scripts
